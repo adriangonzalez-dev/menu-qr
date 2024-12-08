@@ -1,0 +1,188 @@
+[
+    {
+        "id":1,
+        "name": "Empanada de carne",
+        "price": 310,
+        "type":1
+    },
+    {
+        "id":2,
+        "name": "Empanada de jamón y queso",
+        "price": 310,
+        "type":1
+    },
+    {
+        "id":3,
+        "name": "Queso provolone",
+        "price": 900,
+        "type":1
+    },
+    {
+        "id":4,
+        "name": "Buñueños de acelga",
+        "price": 600,
+        "type":1
+    },
+    {
+        "id":5,
+        "name": "Bastones de queso",
+        "price": 700,
+        "type":1
+    },
+    {
+        "id":6,
+        "name": "Rabas",
+        "price": 980,
+        "type":1
+    },
+    {
+        "id":7,
+        "name": "Bife de chorizo",
+        "price": 1800,
+        "type":2
+    },
+    {
+        "id":8,
+        "name": "Medallón de lomo",
+        "price": 2100,
+        "type":2
+    },
+    {
+        "id":9,
+        "name": "Entraña",
+        "price": 1950,
+        "type":2
+    },
+    {
+        "id":10,
+        "name": "Vacio",
+        "price": 1500,
+        "type":2
+    },
+    {
+        "id":11,
+        "name": "Chorizo",
+        "price": 650,
+        "type":2
+    },
+    {
+        "id":12,
+        "name": "Morcilla",
+        "price": 850,
+        "type":2
+    },
+    {
+        "id":13,
+        "name": "Papas Fritas",
+        "price": 500,
+        "type":3
+    },
+    {
+        "id":14,
+        "name": "Puré de papas",
+        "price": 400,
+        "type":3
+    },
+    {
+        "id":15,
+        "name": "Puré de calabaza",
+        "price": 400,
+        "type":3
+    },
+    {
+        "id":16,
+        "name": "Arroz con vegetales",
+        "price": 500,
+        "type":3
+    },
+    {
+        "id":17,
+        "name": "Ensalada de lechuga y tomate",
+        "price": 500,
+        "type":3
+    },
+    {
+        "id":18,
+        "name": "Ensalada de rúcula y queso",
+        "price": 400,
+        "type":3
+    },
+    {
+        "id":19,
+        "name": "Espinacas a la crema",
+        "price": 420,
+        "type":3
+    },
+    {
+        "id":20,
+        "name": "Agua sin gas",
+        "price": 180,
+        "type":4
+    },
+    {
+        "id":21,
+        "name": "Agua con gas",
+        "price": 170,
+        "type":4
+    },
+    {
+        "id":22,
+        "name": "Gaseosa",
+        "price": 200,
+        "type":4
+    },
+    {
+        "id":23,
+        "name": "Cerveza",
+        "price": 600,
+        "type":4
+    },
+    {
+        "id":24,
+        "name": "Vino tinto",
+        "price": 900,
+        "type":4
+    },
+    {
+        "id":25,
+        "name": "Vino blanco",
+        "price": 800,
+        "type":4
+    },
+    {
+        "id":26,
+        "name": "Flan casero",
+        "price": 500,
+        "type":5
+    },
+    {
+        "id":27,
+        "name": "Panqueque con dulce de leche",
+        "price": 400,
+        "type":5
+    },
+    {
+        "id":28,
+        "name": "Volcán de chocolate",
+        "price": 400,
+        "type":5
+    },
+    {
+        "id":29,
+        "name": "Bocha de helado",
+        "price": 300,
+        "type":5
+    },
+    {
+        "id":30,
+        "name": "Almendrado",
+        "price": 350,
+        "type":5
+    },
+    {
+        "id":31,
+        "name": "Torta de chocolate",
+        "price": 400,
+        "type":5
+    }
+]

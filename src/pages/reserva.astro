@@ -1,0 +1,35 @@
+---
+import Layout from "../layouts/Layout.astro";
+import {Image} from "astro:assets"
+import info from "../assets/info.jpg"
+import arrowLeft from "../assets/arrow-left.svg";
+
+const textInfo = "text-center text-white"
+---
+
+<Layout>
+    <section class="w-full h-1/2">
+        <Image src={info} alt="Entrada" class="object-cover w-full h-full" loading="lazy"/>
+        <a class={`bg-white p-2 rounded-md flex justify-center items-center absolute top-1 left-1`} href="/postres">
+            <Image src={arrowLeft} alt="arrow" class="w-10" loading="lazy"/> 
+        </a>
+    </section>
+    <section class=" flex h-1/2">
+        <div class=" bg-white text-3xl w-1/3 h-full flex items-center justify-center">
+            <p class="p-rotate text-center text-black">HACÉ TU RESERVA</p>
+        </div>
+        <div class="h-full w-2/3 flex items-center justify-center flex-col">
+            <p class={textInfo}>@parrillaeltano</p>
+            <p class={textInfo}>(54) 116500-0000</p>
+            <p class={textInfo}>www.parrillaeltano.com</p>
+            <p class={textInfo}>info@parrillaeltano.com</p>
+        </div>
+    </section>
+</Layout>
+
+<style>
+    p.p-rotate {
+        writing-mode: vertical-lr;
+        transform: rotate(180deg);
+    }
+</style>

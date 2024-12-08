@@ -1,0 +1,12 @@
+---
+interface props{
+    name:string
+    price:number
+}
+
+const {name, price} = Astro.props
+---
+
+<li class="flex items-center justify-between text-xl border-b-2 border-black border-opacity-40 pb-2">
+    <p>{name}</p> <p class="font-semibold">${price}</p>
+</li>

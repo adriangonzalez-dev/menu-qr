@@ -1,0 +1,39 @@
+---
+import Layout from "../layouts/Layout.astro";
+import {getFoods} from "../services/getData";
+import Item from "../components/Item.astro";
+import acomp from "../assets/acomp.jpg";
+import {Image} from "astro:assets";
+import arrowRight from "../assets/arrow.svg";
+import arrowLeft from "../assets/arrow-left.svg";
+
+const acompanamientos = getFoods(3)
+---
+
+<Layout>
+    <section class="flex w-full h-full">
+        <div class="flex justify-center items-center w-1/4">
+            <p class="text-white -rotate-90 text-3xl">ACOMPAÑAMIENTOS</p>
+            
+        </div>
+        <div class="bg-white w-full flex flex-col justify-between">
+            <div class="w-full h-full flex items-center justify-center">
+
+                <ul class="w-4/5 flex flex-col gap-2">
+                    {
+                        acompanamientos.map(x=><Item name={x.name} price={x.price}/>)
+                    }
+                </ul>
+            </div>
+            <div class="w-full relative">
+                <Image src={acomp} alt="Acompañanmiento" class="object-cover w-full h-full" loading="lazy"/>
+                <a class={`bg-white p-2 rounded-md flex justify-center items-center absolute top-1 right-1`} href="/bebidas">
+                    <Image src={arrowRight} loading="lazy" alt="arrow" class="w-10"/> 
+                </a>
+                <a class={`bg-white p-2 rounded-md flex justify-center items-center absolute top-1 left-1`} href="/principal">
+                    <Image src={arrowLeft} loading="lazy" alt="arrow" class="w-10"/> 
+                </a>
+            </div>
+        </div>
+    </section>
+</Layout>
