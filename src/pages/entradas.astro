@@ -28,7 +28,7 @@ const entradas = getFoods(1)
     <section class="bg-white w-full h-2/3 p-4 flex items-center justify-center">
         <ul class="w-4/5 flex flex-col gap-2">
             {
-                entradas.map(x=><Item name={x.name} price={x.price}/>)
+                entradas.map(x=><Item product={x}/>)
             }
         </ul>
 
