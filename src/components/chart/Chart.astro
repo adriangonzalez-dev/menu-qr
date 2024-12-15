@@ -1,9 +1,11 @@
+---
+import OrderButton from './OrderButton.astro';
+---
+
 <div class="text-black">
-    <h1>Parrilla El Tano</h1>
-    <p>Lista de productos</p>
+    <h1 class="text-2xl font-bold">Parrilla El Tano</h1>
+    <p class="text-xl" id="listOfProductsTitle">Lista de productos</p>
     <div id="listOfProducts"></div>
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
-    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
 </div>
 
 <script>
@@ -15,11 +17,36 @@
         private cookieManager: CookieManager;
         private static instance: CartManager | null = null;
         private lastUpdate: number = 0;
+        private lastCookieValue: string = '';
+        private observerInterval: number | null = null;
 
         constructor() {
             this.container = document.getElementById('listOfProducts');
             this.cookieManager = new CookieManager();
+            this.lastCookieValue = this.getCurrentCookieValue();
             this.initializeEventListeners();
+            this.startCookieObserver();
+        }
+
+        private getCurrentCookieValue(): string {
+            const cookies = this.cookieManager.getCookie();
+            return JSON.stringify(cookies);
+        }
+
+        private startCookieObserver(): void {
+            // Limpiar intervalo existente si hay uno
+            if (this.observerInterval) {
+                clearInterval(this.observerInterval);
+            }
+
+            // Crear nuevo intervalo
+            this.observerInterval = setInterval(() => {
+                const currentValue = this.getCurrentCookieValue();
+                if (currentValue !== this.lastCookieValue) {
+                    this.lastCookieValue = currentValue;
+                    this.renderProducts();
+                }
+            }, 300) as unknown as number; // 300ms es un buen balance entre responsividad y rendimiento
         }
 
         public static getInstance(): CartManager {
@@ -29,7 +56,7 @@
             return CartManager.instance;
         }
 
-        public async renderProducts() {
+        private async renderProducts() {
             // Evitar actualizaciones muy frecuentes
             const now = Date.now();
             if (now - this.lastUpdate < 100) return;
@@ -40,11 +67,12 @@
                 if (!this.container) return;
             }
             
+            // Obtener productos actuales
+            const listOfProducts: ProductCounter[] = this.cookieManager.getCookie();
+            
             // Limpiar el contenedor
             this.container.innerHTML = '';
             
-            // Obtener productos actuales
-            const listOfProducts: ProductCounter[] = this.cookieManager.getCookie();
             if (listOfProducts.length === 0) {
                 this.container.innerHTML = '<p>No hay productos en el carrito</p>';
                 return;
@@ -80,10 +108,23 @@
                     return sum + (product.price * quantity);
                 }, 0);
 
+                const containerPaid = document.createElement('div');
+                if (!containerPaid) return;
+                containerPaid.className = 'flex justify-between items-center';
+
                 const totalDiv = document.createElement('div');
+                if (!totalDiv) return;
                 totalDiv.className = 'mt-4 text-xl font-bold';
                 totalDiv.textContent = `Total: $${total.toFixed(2)}`;
-                this.container?.appendChild(totalDiv);
+                containerPaid?.appendChild(totalDiv);
+
+                const OrderButton = document.createElement('button');
+                if (!totalDiv) return;
+                OrderButton.className = 'bg-red-500 text-white px-4 py-2 rounded-md mt-4 active:bg-red-600 active:scale-95 active:shadow-inner transition-all duration-150 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50';
+                OrderButton.textContent = `Realizar pedido`;
+                containerPaid?.appendChild(OrderButton);
+
+                this.container?.appendChild(containerPaid);
 
                 this.addProductEventListeners();
             } catch (error) {
@@ -128,7 +169,7 @@
             }
 
             this.cookieManager.setCookie(products);
-            this.renderProducts();
+            // El observer se encargará de actualizar la vista
         }
 
         private handleRemoveProduct(e: Event) {
@@ -137,37 +178,36 @@
             const products = this.cookieManager.getCookie().filter(p => p.id !== productId);
             
             this.cookieManager.setCookie(products);
-            this.renderProducts();
+            // El observer se encargará de actualizar la vista
         }
 
         private initializeEventListeners() {
-            // Manejar todos los eventos de navegación de Astro
             const initializeAndRender = () => {
                 this.container = document.getElementById('listOfProducts');
                 if (this.container) {
+                    this.startCookieObserver(); // Reiniciar el observer después de la navegación
                     this.renderProducts();
                 }
             };
 
-            // Eventos específicos de Astro
             document.addEventListener('astro:after-swap', initializeAndRender);
             document.addEventListener('astro:page-load', initializeAndRender);
             document.addEventListener('astro:after-navigation', initializeAndRender);
-            
-            // Eventos de carrito y carga inicial
             document.addEventListener('cart-updated', () => this.renderProducts());
             document.addEventListener('DOMContentLoaded', initializeAndRender);
 
-            // Renderizar inmediatamente
             initializeAndRender();
+        }
+
+        // Método para limpiar el observer cuando sea necesario
+        public destroy(): void {
+            if (this.observerInterval) {
+                clearInterval(this.observerInterval);
+                this.observerInterval = null;
+            }
         }
     }
 
-    // Inicializar el CartManager inmediatamente después de que el script se carga
+    // Inicializar el CartManager
     CartManager.getInstance();
-
-    // Asegurarse de que se renderiza después de cada navegación
-    document.addEventListener('astro:after-swap', () => {
-        CartManager.getInstance().renderProducts();
-    });
 </script>
