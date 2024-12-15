@@ -1,0 +1,169 @@
+---
+---
+<div class="sliding-panel minimized">
+    <div class="handle"></div>
+    <div class="content">
+        <slot />
+    </div>
+</div>
+
+<script>
+    interface PanelState {
+        isDragging: boolean;
+        startY: number;
+        startTransform: number;
+        panel: HTMLElement;
+        handle: HTMLElement;
+        handleHeight: number;
+        panelHeight: number;
+        threshold: number;
+    }
+
+    class PanelController {
+        private state: PanelState;
+
+        constructor(panel: HTMLElement, handle: HTMLElement) {
+            this.state = {
+                isDragging: false,
+                startY: 0,
+                startTransform: 0,
+                panel,
+                handle,
+                handleHeight: 60,
+                panelHeight: panel.clientHeight,
+                threshold: panel.clientHeight / 2
+            };
+
+            this.initializeEventListeners();
+        }
+
+        private getTransformValue(): number {
+            const transform = window.getComputedStyle(this.state.panel).transform;
+            if (transform === 'none') return 0;
+            const matrix = new DOMMatrix(transform);
+            return matrix.m42;
+        }
+
+        private onStart = (e: MouseEvent | TouchEvent): void => {
+            this.state.isDragging = true;
+            this.state.startY = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY;
+            this.state.startTransform = this.getTransformValue();
+            
+            document.addEventListener('mousemove', this.onMove);
+            document.addEventListener('touchmove', this.onMove);
+            document.addEventListener('mouseup', this.onEnd);
+            document.addEventListener('touchend', this.onEnd);
+        };
+
+        private onMove = (e: MouseEvent | TouchEvent): void => {
+            if (!this.state.isDragging) return;
+            
+            const currentY = e instanceof MouseEvent ? e.clientY : e.touches[0].clientY;
+            const diff = currentY - this.state.startY;
+            const newTransform = Math.max(
+                0, 
+                Math.min(
+                    this.state.panelHeight - this.state.handleHeight,
+                    this.state.startTransform + diff
+                )
+            );
+            
+            this.state.panel.style.transform = `translateY(${newTransform}px)`;
+        };
+
+        private onEnd = (): void => {
+            if (!this.state.isDragging) return;
+            
+            this.state.isDragging = false;
+            const currentTransform = this.getTransformValue();
+
+            if (currentTransform < this.state.threshold) {
+                this.state.panel.style.transform = 'translateY(0)';
+                this.state.panel.classList.remove('minimized');
+            } else {
+                this.state.panel.style.transform = 
+                    `translateY(calc(100% - ${this.state.handleHeight}px))`;
+                this.state.panel.classList.add('minimized');
+            }
+            
+            document.removeEventListener('mousemove', this.onMove);
+            document.removeEventListener('touchmove', this.onMove);
+            document.removeEventListener('mouseup', this.onEnd);
+            document.removeEventListener('touchend', this.onEnd);
+        };
+
+        private initializeEventListeners(): void {
+            this.state.handle.addEventListener('mousedown', this.onStart);
+            this.state.handle.addEventListener('touchstart', this.onStart);
+        }
+    }
+
+    const initializePanel = (): void => {
+        const panel = document.querySelector<HTMLElement>('.sliding-panel');
+        if (!panel) {
+            console.warn('Sliding panel not found');
+            return;
+        }
+        
+        const handle = panel.querySelector<HTMLElement>('.handle');
+        if (!handle) {
+            console.warn('Handle not found');
+            return;
+        }
+
+        new PanelController(panel, handle);
+    };
+
+    // Inicializar con View Transitions API
+    document.addEventListener('astro:page-load', initializePanel);
+    // Fallback
+    document.addEventListener('DOMContentLoaded', initializePanel);
+</script>
+
+<style>
+    .sliding-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease-out;
+        z-index: 9999;
+        touch-action: none;
+        min-height: 70vh;
+        height: 70vh; /* Altura fija para evitar problemas de cálculo */
+        border-radius: 10px;
+    }
+
+    .sliding-panel.minimized {
+        transform: translateY(calc(100% - 50px));
+    }
+
+    .handle {
+        width: 100%;
+        height: 50px;
+        background: #F4511E;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+        border-radius: 10px 10px 0 0;
+    }
+
+    .handle::before {
+        content: '';
+        width: 40px;
+        height: 4px;
+        background: #fff;
+        border-radius: 2px;
+    }
+
+    .content {
+        padding: 20px;
+        height: calc(80vh - 60px);
+        overflow-y: auto;
+        background: white;
+        -webkit-overflow-scrolling: touch; /* Para mejor scroll en iOS */
+    }
+</style>

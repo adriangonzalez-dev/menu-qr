@@ -1,12 +1,70 @@
 ---
-interface props{
-    name:string
-    price:number
+import add from "../assets/add.svg";
+import {Image} from "astro:assets";
+
+interface Product {
+    name: string
+    price: number
+    id: number
+    type: number
 }
 
-const {name, price} = Astro.props
+interface Props {
+    product: Product
+}
+
+const {product} = Astro.props
 ---
 
 <li class="flex items-center justify-between text-xl border-b-2 border-black border-opacity-40 pb-2">
-    <p>{name}</p> <p class="font-semibold">${price}</p>
+    <p>{product.name}</p>
+    
+    <div class="flex gap-1 items-center justify-center">
+        <p class="font-semibold">${product.price}</p>
+        
+        <button class="w-6 add-product-btn" data-id={product.id}>
+            <Image src={add} alt="add product"/>
+        </button>
+    </div>
 </li>
+
+<script>
+    import {CookieManager, type ProductCounter} from '../services/cookiesManager'
+    // Instanciar el manejador de cookies
+    const cookieManager = new CookieManager();
+
+    
+    // Obtener productos guardados en cookies
+    let listOfProducts: ProductCounter[] = cookieManager.getCookie();
+
+    const initializeProductButtons = () => {
+        const buttons = document.querySelectorAll<HTMLButtonElement>('.add-product-btn');
+        
+        buttons.forEach(btn => {
+            // Remover listeners anteriores para evitar duplicados
+            btn.removeEventListener('click', handleClick);
+            btn.addEventListener('click', handleClick);
+        });
+    };
+
+    const handleClick = (event: Event) => {
+        const btn = event.currentTarget as HTMLButtonElement;
+        const productId = btn.getAttribute('data-id');
+
+        const product = listOfProducts.find(product => product.id === Number(productId));
+        if (product) {
+            product.cant++;
+        } else {
+            listOfProducts.push({id: Number(productId), cant: 1});
+        }
+
+        console.log('Productos actuales:', listOfProducts)
+        cookieManager.setCookie(listOfProducts);
+            
+    };
+
+    // Inicializar con View Transitions API
+    document.addEventListener('astro:page-load', initializeProductButtons);
+    // Fallback para cuando no se use View Transitions
+    document.addEventListener('DOMContentLoaded', initializeProductButtons);
+</script>

@@ -1,0 +1,173 @@
+<div class="text-black">
+    <h1>Parrilla El Tano</h1>
+    <p>Lista de productos</p>
+    <div id="listOfProducts"></div>
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
+    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.</p>
+</div>
+
+<script>
+    import { CookieManager, type ProductCounter } from '../../services/cookiesManager';
+    import { getFoodsByIds } from '../../services/getData';
+
+    class CartManager {
+        private container: HTMLElement | null;
+        private cookieManager: CookieManager;
+        private static instance: CartManager | null = null;
+        private lastUpdate: number = 0;
+
+        constructor() {
+            this.container = document.getElementById('listOfProducts');
+            this.cookieManager = new CookieManager();
+            this.initializeEventListeners();
+        }
+
+        public static getInstance(): CartManager {
+            if (!CartManager.instance) {
+                CartManager.instance = new CartManager();
+            }
+            return CartManager.instance;
+        }
+
+        public async renderProducts() {
+            // Evitar actualizaciones muy frecuentes
+            const now = Date.now();
+            if (now - this.lastUpdate < 100) return;
+            this.lastUpdate = now;
+
+            if (!this.container) {
+                this.container = document.getElementById('listOfProducts');
+                if (!this.container) return;
+            }
+            
+            // Limpiar el contenedor
+            this.container.innerHTML = '';
+            
+            // Obtener productos actuales
+            const listOfProducts: ProductCounter[] = this.cookieManager.getCookie();
+            if (listOfProducts.length === 0) {
+                this.container.innerHTML = '<p>No hay productos en el carrito</p>';
+                return;
+            }
+
+            try {
+                const products = await getFoodsByIds(listOfProducts.map(product => product.id));
+                
+                products.forEach(product => {
+                    const productCounter = listOfProducts.find(p => p.id === product.id);
+                    const quantity = productCounter?.cant || 0;
+
+                    const productDiv = document.createElement('div');
+                    productDiv.className = 'flex items-center justify-between py-2 border-b';
+                    productDiv.innerHTML = `
+                        <div class="flex-1">
+                            <p class="font-medium">${product.name}</p>
+                            <p class="text-sm text-gray-600">$${product.price}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button class="decrease-btn px-2 py-1 bg-gray-200 rounded" data-id="${product.id}">-</button>
+                            <span class="quantity">${quantity}</span>
+                            <button class="increase-btn px-2 py-1 bg-gray-200 rounded" data-id="${product.id}">+</button>
+                            <button class="remove-btn text-red-500 ml-2" data-id="${product.id}">×</button>
+                        </div>
+                    `;
+
+                    this.container?.appendChild(productDiv);
+                });
+
+                const total = products.reduce((sum, product) => {
+                    const quantity = listOfProducts.find(p => p.id === product.id)?.cant || 0;
+                    return sum + (product.price * quantity);
+                }, 0);
+
+                const totalDiv = document.createElement('div');
+                totalDiv.className = 'mt-4 text-xl font-bold';
+                totalDiv.textContent = `Total: $${total.toFixed(2)}`;
+                this.container?.appendChild(totalDiv);
+
+                this.addProductEventListeners();
+            } catch (error) {
+                console.error('Error al cargar productos:', error);
+                this.container.innerHTML = '<p>Error al cargar los productos</p>';
+            }
+        }
+
+        private addProductEventListeners() {
+            const removeOldListeners = () => {
+                this.container?.querySelectorAll('button').forEach(btn => {
+                    btn.replaceWith(btn.cloneNode(true));
+                });
+            };
+
+            removeOldListeners();
+
+            this.container?.querySelectorAll('.increase-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => this.handleQuantityChange(e, 1));
+            });
+
+            this.container?.querySelectorAll('.decrease-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => this.handleQuantityChange(e, -1));
+            });
+
+            this.container?.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', this.handleRemoveProduct.bind(this));
+            });
+        }
+
+        private handleQuantityChange(e: Event, change: number) {
+            const btn = e.currentTarget as HTMLButtonElement;
+            const productId = Number(btn.dataset.id);
+            let products = this.cookieManager.getCookie();
+            
+            const productIndex = products.findIndex(p => p.id === productId);
+            if (productIndex !== -1) {
+                products[productIndex].cant += change;
+                if (products[productIndex].cant <= 0) {
+                    products = products.filter(p => p.id !== productId);
+                }
+            }
+
+            this.cookieManager.setCookie(products);
+            this.renderProducts();
+        }
+
+        private handleRemoveProduct(e: Event) {
+            const btn = e.currentTarget as HTMLButtonElement;
+            const productId = Number(btn.dataset.id);
+            const products = this.cookieManager.getCookie().filter(p => p.id !== productId);
+            
+            this.cookieManager.setCookie(products);
+            this.renderProducts();
+        }
+
+        private initializeEventListeners() {
+            // Manejar todos los eventos de navegación de Astro
+            const initializeAndRender = () => {
+                this.container = document.getElementById('listOfProducts');
+                if (this.container) {
+                    this.renderProducts();
+                }
+            };
+
+            // Eventos específicos de Astro
+            document.addEventListener('astro:after-swap', initializeAndRender);
+            document.addEventListener('astro:page-load', initializeAndRender);
+            document.addEventListener('astro:after-navigation', initializeAndRender);
+            
+            // Eventos de carrito y carga inicial
+            document.addEventListener('cart-updated', () => this.renderProducts());
+            document.addEventListener('DOMContentLoaded', initializeAndRender);
+
+            // Renderizar inmediatamente
+            initializeAndRender();
+        }
+    }
+
+    // Inicializar el CartManager inmediatamente después de que el script se carga
+    CartManager.getInstance();
+
+    // Asegurarse de que se renderiza después de cada navegación
+    document.addEventListener('astro:after-swap', () => {
+        CartManager.getInstance().renderProducts();
+    });
+</script>

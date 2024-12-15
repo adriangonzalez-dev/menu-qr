@@ -15,7 +15,7 @@ const data = getFoods(2);
         <h1 class="text-black text-4xl">PARRILLA</h1>
         <ul class="w-4/5 flex flex-col gap-2">
             {
-                data.map(x=><Item name={x.name} price={x.price}/>)
+                data.map(x=><Item product={x}/>)
             }
         </ul>
 
