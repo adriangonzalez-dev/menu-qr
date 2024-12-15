@@ -1,12 +1,132 @@
 ---
-interface props{
-    name:string
-    price:number
+import add from "../assets/add.svg";
+import {Image} from "astro:assets";
+
+interface Product {
+    name: string
+    price: number
+    id: number
+    type: number
 }
 
-const {name, price} = Astro.props
+interface Props {
+    product: Product
+}
+
+const {product} = Astro.props
 ---
 
 <li class="flex items-center justify-between text-xl border-b-2 border-black border-opacity-40 pb-2">
-    <p>{name}</p> <p class="font-semibold">${price}</p>
+    <p>{product.name}</p>
+    
+    <div class="flex gap-1 items-center justify-center">
+        <p class="font-semibold">${product.price}</p>
+        
+        <button class="w-6 add-product-btn relative transition-all duration-300" data-id={product.id}>
+            <div class="product-indicator absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full hidden items-center justify-center text-[10px] text-white font-bold"></div>
+            <Image src={add} alt="add product" class="product-icon transition-transform duration-300"/>
+        </button>
+    </div>
 </li>
+
+<script>
+    import {CookieManager, type ProductCounter} from '../services/cookiesManager'
+    
+    class ProductButtonManager {
+        private cookieManager: CookieManager;
+        private listOfProducts: ProductCounter[];
+
+        constructor() {
+            this.cookieManager = new CookieManager();
+            this.listOfProducts = this.cookieManager.getCookie();
+            this.initializeButtons();
+            this.startCookieObserver();
+        }
+
+        private initializeButtons() {
+            const buttons = document.querySelectorAll<HTMLButtonElement>('.add-product-btn');
+            
+            buttons.forEach(btn => {
+                btn.removeEventListener('click', this.handleClick);
+                btn.addEventListener('click', this.handleClick);
+                this.updateButtonState(btn);
+            });
+        }
+
+        private handleClick = (event: Event) => {
+            const btn = event.currentTarget as HTMLButtonElement;
+            const productId = btn.getAttribute('data-id');
+
+            if (productId) {
+                const product = this.listOfProducts.find(p => p.id === Number(productId));
+                if (product) {
+                    product.cant++;
+                } else {
+                    this.listOfProducts.push({id: Number(productId), cant: 1});
+                }
+
+                this.cookieManager.setCookie(this.listOfProducts);
+                this.updateButtonState(btn);
+                
+                // Añadir efecto de animación
+                const icon = btn.querySelector('.product-icon');
+                icon?.classList.add('scale-125');
+                setTimeout(() => icon?.classList.remove('scale-125'), 200);
+            }
+        };
+
+        private updateButtonState(btn: HTMLButtonElement) {
+            const productId = Number(btn.getAttribute('data-id'));
+            const product = this.listOfProducts.find(p => p.id === productId);
+            const indicator = btn.querySelector('.product-indicator') as HTMLElement;
+            
+            if (product) {
+                indicator.classList.remove('hidden');
+                indicator.classList.add('flex');
+                indicator.textContent = product.cant.toString();
+                btn.classList.add('text-orange-500');
+            } else {
+                indicator.classList.add('hidden');
+                indicator.classList.remove('flex');
+                btn.classList.remove('text-orange-500');
+            }
+        }
+
+        private updateAllButtons() {
+            const buttons = document.querySelectorAll<HTMLButtonElement>('.add-product-btn');
+            buttons.forEach(btn => this.updateButtonState(btn));
+        }
+
+        private startCookieObserver() {
+            let lastCookieValue = JSON.stringify(this.listOfProducts);
+            
+            setInterval(() => {
+                this.listOfProducts = this.cookieManager.getCookie();
+                const currentCookieValue = JSON.stringify(this.listOfProducts);
+                
+                if (currentCookieValue !== lastCookieValue) {
+                    lastCookieValue = currentCookieValue;
+                    this.updateAllButtons();
+                }
+            }, 300);
+        }
+    }
+
+    // Manejar la inicialización para View Transitions
+    const initializeManager = () => {
+        new ProductButtonManager();
+    };
+
+    document.addEventListener('astro:page-load', initializeManager);
+    document.addEventListener('DOMContentLoaded', initializeManager);
+</script>
+
+<style>
+    .add-product-btn:hover .product-icon {
+        transform: scale(1.1);
+    }
+    
+    .product-indicator {
+        transform: translate(25%, -25%);
+    }
+</style>

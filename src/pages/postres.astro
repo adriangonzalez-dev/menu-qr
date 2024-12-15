@@ -17,7 +17,7 @@ const acompanamientos = getFoods(5)
                 <p class=" text-4xl">POSTRES</p>
                 <ul class="w-4/5 flex flex-col gap-2">
                     {
-                        acompanamientos.map(x=><Item name={x.name} price={x.price}/>)
+                        acompanamientos.map(x=><Item product={x}/>)
                     }
                 </ul>
             </div>

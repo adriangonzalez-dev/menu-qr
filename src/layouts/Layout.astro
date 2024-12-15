@@ -1,6 +1,8 @@
 ---
 import '@fontsource/oswald'
 import {ClientRouter} from "astro:transitions";
+import SliderPanel from '../components/slider-panel/SliderPanel.astro';
+import Chart from '../components/chart/Chart.astro';
 ---
 
 <!doctype html>
@@ -13,9 +15,19 @@ import {ClientRouter} from "astro:transitions";
 		<title>Parrilla El Tano</title>
 		<ClientRouter/>
 	</head>
-	<body class="flex flex-col justify-between">
-		<slot />
-	</body>
+	<body class="flex flex-col justify-between select-none relative min-h-screen">
+        <main class="flex-1">
+            <slot />
+        </main>
+		{
+			Astro.url.pathname !== '/' && 
+				<SliderPanel>
+					<Chart />
+				</SliderPanel>
+			
+		}
+        
+    </body>
 </html>
 
 <style>
@@ -29,5 +41,10 @@ import {ClientRouter} from "astro:transitions";
 		font-family: 'oswald';
 		background-color: black;
 	}
+
+	main {
+        position: relative;
+        z-index: 1;
+    }
 </style>
 
